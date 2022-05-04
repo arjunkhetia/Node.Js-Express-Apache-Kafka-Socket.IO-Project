@@ -147,9 +147,13 @@ io.on("connection", (socket) => {
 });
 ```
 
-### Kafka using Socket.IO on Postman
+## Kafka using Socket.IO on Postman
+
+### Kafka Producer using Postman
 
 ![Kafka](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/kafka.png "Kafka")
+
+### Socket.IO Consumer using Postman
 
 ![Socket](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/socket.png "Socket")
 
