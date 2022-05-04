@@ -149,9 +149,9 @@ io.on("connection", (socket) => {
 
 ### Kafka using Socket.IO on Postman
 
-![Kafka](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/master/public/kafka.png "Kafka")
+![Kafka](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/kafka.png "Kafka")
 
-![Socket](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/master/public/socket.png "Socket")
+![Socket](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/socket.png "Socket")
 
 # Nodemon
 
