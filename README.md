@@ -1,4 +1,4 @@
-# Node-Express-Apache-Kafka Project   ![Version][version-image]
+# Node Express Apache-Kafka Socket.IO Project   ![Version][version-image]
 
 ![Linux Build][linuxbuild-image]
 ![Windows Build][windowsbuild-image]
@@ -7,10 +7,10 @@
 ![Dependency Status][dependency-image]
 ![devDependencies Status][devdependency-image]
 
-The quickest way to get start with Node.Js, Express & Apache Kafka, just clone the project:
+The quickest way to get start with Node.Js, Express, Apache Kafka & Socket.IO, just clone the project:
 
 ```bash
-$ git clone https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Project.git
+$ git clone https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project.git
 ```
 
 Install dependencies:
@@ -73,7 +73,32 @@ const consumerConfig = {
   sessionTimeout: 30000,
   allowAutoTopicCreation: true,
 };
-const consumer = kafka.consumer(consumerConfig);
+module.exports.consume = async (topic, callback) => {
+  const socketconsumer = kafka.consumer(consumerConfig);
+  await socketconsumer.connect().then(() => {
+    console.log("Socket consumer got connected.");
+  })
+  .catch(() => {
+    console.log("Socket consumer connection error.");
+  });
+  await socketconsumer.subscribe({
+    topic: topic,
+    fromBeginning: true,
+  });
+  await socketconsumer.run({
+    autoCommit: false,
+    eachMessage: async ({ topic, partition, message }) => {
+      data = {
+        topic: topic,
+        partition: partition,
+        key: message.key ? message.key.toString() : null,
+        value: message.value ? message.value.toString() : null,
+        headers: message.headers,
+      };
+      callback(data);
+    },
+  });
+};
 ```
 
 # Kafdrop
@@ -82,15 +107,58 @@ Kafdrop is a web UI for viewing Kafka topics and browsing consumer groups. The t
 
 ## Kafdrop Screen - 
 
-![Monitoring Page](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Project/blob/main/public/kafdrop.png "Monitoring Page")
+![Kafdrop](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/kafdrop.png "Kafdrop")
 
 ## API Response on HTML Page - 
 
-![Monitoring Page](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Project/blob/main/public/html.png "Monitoring Page")
+![HTML](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/html.png "HTML")
 
 ## API Call on Postman - 
 
-![Monitoring Page](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Project/blob/main/public/postman.png "Monitoring Page")
+![Postman](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/postman.png "Postman")
+
+# Socket.IO
+
+Socket.IO enables real-time bidirectional event-based communication.
+
+```js
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
+// Create the http server
+const httpServer = createServer(app);
+// Create the Socket IO server on the top of http server
+const io = new Server(httpServer);
+
+const topic = "kafka-topic";
+var clients = [];
+
+io.on("connection", (socket) => {
+  var client = {
+    clientId: clients.length + 1,
+    socketId: socket.id
+  }
+  clients.push(client);
+  console.log(socket.id + ' - client connected');
+  socket.emit('socketid', client);
+
+  kafka.consume(topic, (data) => {
+    socket.emit('server-message', data);
+  });
+
+  socket.on('disconnect', function() {
+    var socketIndex = clients.indexOf(socket);
+    clients.splice(socketIndex, 1);
+    console.log(socket.id + ' - client disconnected');
+  });
+});
+```
+
+### Kafka using Socket.IO on Postman
+
+![Kafka](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/master/public/kafka.png "Kafka")
+
+![Socket](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/master/public/socket.png "Socket")
 
 # Nodemon
 
@@ -224,7 +292,7 @@ app.use(require('express-status-monitor')({
 }));
 ```
 
-![Monitoring Page](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Project/blob/main/public/status-monitor.png "Monitoring Page")
+![Monitoring Page](https://github.com/arjunkhetia/Node.Js-Express-Apache-Kafka-Socket.IO-Project/blob/main/public/status-monitor.png "Monitoring Page")
 
 [version-image]: https://img.shields.io/badge/Version-1.0.0-orange.svg
 [linuxbuild-image]: https://img.shields.io/badge/Linux-passing-brightgreen.svg

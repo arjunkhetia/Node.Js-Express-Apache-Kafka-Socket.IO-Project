@@ -66,18 +66,6 @@ module.exports.connect = () => {
           reject();
         });
     }),
-    new Promise((resolve, reject) => {
-      consumer
-        .connect()
-        .then(() => {
-          console.log("Kafka consumer got connected.");
-          resolve();
-        })
-        .catch(() => {
-          console.log("Kafka consumer connection error.");
-          reject();
-        });
-    }),
   ]);
 };
 
@@ -97,14 +85,6 @@ module.exports.disconnect = () => {
     })
     .catch(() => {
       console.log("Kafka producer disconnection error.");
-    });
-  consumer
-    .disconnect()
-    .then(() => {
-      console.log("Kafka consumer got disconnected.");
-    })
-    .catch(() => {
-      console.log("Kafka consumer disconnection error.");
     });
 };
 
@@ -140,5 +120,32 @@ module.exports.sendBatch = (topicMessages) => {
       .catch((error) => {
         reject(error);
       });
+  });
+};
+
+module.exports.consume = async (topic, callback) => {
+  const socketconsumer = kafka.consumer(consumerConfig);
+  await socketconsumer.connect().then(() => {
+    console.log("Socket consumer got connected.");
+  })
+  .catch(() => {
+    console.log("Socket consumer connection error.");
+  });
+  await socketconsumer.subscribe({
+    topic: topic,
+    fromBeginning: true,
+  });
+  await socketconsumer.run({
+    autoCommit: false,
+    eachMessage: async ({ topic, partition, message }) => {
+      data = {
+        topic: topic,
+        partition: partition,
+        key: message.key ? message.key.toString() : null,
+        value: message.value ? message.value.toString() : null,
+        headers: message.headers,
+      };
+      callback(data);
+    },
   });
 };

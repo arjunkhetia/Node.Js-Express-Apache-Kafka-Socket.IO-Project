@@ -12,12 +12,19 @@ var rfs = require('rotating-file-stream');
 var helmet = require('helmet');
 var compression = require('compression');
 var kafka = require('./kafka');
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 // Defining routes
 var routes = require('./routes');
 
 // Generating an express app
 var app = express();
+
+// Create the http server
+const httpServer = createServer(app);
+// Create the Socket IO server on the top of http server
+const io = new Server(httpServer);
 
 // Express Status Monitor for monitoring server status
 app.use(require('express-status-monitor')({
@@ -143,6 +150,34 @@ app.use(function(err, req, res, next) {
   // res.render('error');
 });
 
+const topic = "kafka-topic";
+var clients = [];
+
+io.on("connection", async (socket) => {
+  var client = {
+    clientId: clients.length + 1,
+    socketId: socket.id
+  }
+  clients.push(client);
+  console.log(socket.id + ' - client connected');
+  socket.emit('socketid', client);
+
+  kafka.consume(topic, (data) => {
+    socket.emit('server-message', data);
+  })
+
+  socket.on('client-message', (message) => {
+    console.log(message);
+    socket.emit('server-message', message);
+  });
+
+  socket.on('disconnect', function() {
+    var socketIndex = clients.indexOf(socket);
+    clients.splice(socketIndex, 1);
+    console.log(socket.id + ' - client disconnected');
+  });
+});
+
 // globally catching unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
    console.error('Unhandled Rejection at promise '+promise+' reason ', reason);
@@ -157,4 +192,4 @@ process.on('uncaughtException', (error) => {
 
 kafka.connect();
 
-module.exports = app;
+module.exports = { app: app, server: httpServer };

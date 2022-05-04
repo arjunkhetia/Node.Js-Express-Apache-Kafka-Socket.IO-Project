@@ -43,11 +43,11 @@ if (cluster.isWorker) {
    * Get port from environment and store in Express.
    */
   port = normalizePort(process.env['PORT']);
-  app.set('port', port);
+  app.app.set('port', port);
   /**
    * Create HTTP server.
    */
-  var server = http.createServer(app);
+  var server = app.server;
   /**
    * Listen on provided port, on all network interfaces.
    */
